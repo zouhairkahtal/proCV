@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import * as z from "zod";
 import { useForm } from "react-hook-form";
@@ -15,6 +16,7 @@ const UserSchema = z.object({
     .min(3, "Experience must be at least 3 characters long"),
   education: z.string().min(3, "Education must be at least 3 characters long"),
   skills: z.string().min(3, "Skills must be at least 3 characters long"),
+  photo: z.string().optional(),
 });
 
 function InformationForm() {
@@ -29,8 +31,21 @@ function InformationForm() {
     resolver: zodResolver(UserSchema),
   });
 
+  const [photo, setPhoto] = useState(null);
+
+  const handlePhotoChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPhoto(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const onSubmit = (data) => {
-    navigate("/PreviewPage", { state: { data, id } });
+    navigate("/PreviewPage", { state: { data: { ...data, photo }, id } });
   };
 
   return (
@@ -213,10 +228,64 @@ function InformationForm() {
                   </p>
                 )}
               </div>
+              <div className="flex flex-col gap-1">
+                <div class="flex items-center justify-center w-full">
+                  <label
+                    for="dropzone-file"
+                    class="flex flex-col items-center justify-center w-full h-64 bg-white border border-solid rounded-lg border-default-strong rounded-base cursor-pointer hover:bg-neutral-tertiary-medium"
+                  >
+                    <div class="flex flex-col items-center overflow-hidden justify-center text-body pt-5 pb-6 text-[#9ca3af] ">
+                      {photo ? (
+                        <div className="w-6/12 h-6/12 p-10 flex items-center justify-center  ">
+                          <img
+                            src={photo}
+                            alt="Preview"
+                            className="w-full h-full object-cover  rounded-2xl mt-2"
+                          />
+                        </div>
+                      ) : (
+                        <>
+                          <svg
+                            class="w-8 h-8 mb-4"
+                            aria-hidden="true"
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="24"
+                            height="24"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              stroke="currentColor"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M15 17h3a3 3 0 0 0 0-6h-.025a5.56 5.56 0 0 0 .025-.5A5.5 5.5 0 0 0 7.207 9.021C7.137 9.017 7.071 9 7 9a4 4 0 1 0 0 8h2.167M12 19v-9m0 0-2 2m2-2 2 2"
+                            />
+                          </svg>
+                          <p class="mb-2 text-sm">
+                            <span class="font-semibold">Click to upload</span>{" "}
+                            or drag and drop
+                          </p>
+                          <p class="text-xs">
+                            SVG, PNG, JPG or GIF (MAX. 800x400px)
+                          </p>
+                        </>
+                      )}
+                    </div>
+                    <input
+                      id="dropzone-file"
+                      type="file"
+                      class="hidden"
+                      accept="image/*"
+                      onChange={handlePhotoChange}
+                    />
+                  </label>
+                </div>
+              </div>
 
               <button
                 type="submit"
-                className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl transition duration-300 mt-4 shadow-lg active:scale-95"
+                className=" text-red bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl transition duration-300 mt-4 shadow-lg active:scale-95"
               >
                 Submit Application
               </button>
